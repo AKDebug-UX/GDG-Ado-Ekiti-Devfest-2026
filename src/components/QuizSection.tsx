@@ -1,0 +1,114 @@
+import React, { useState } from 'react';
+import { CheckCircle2, XCircle, Award } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { QuizQuestion } from '../types/study';
+
+interface QuizSectionProps {
+  questions: QuizQuestion[];
+}
+
+export const QuizSection: React.FC<QuizSectionProps> = ({ questions }) => {
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [score, setScore] = useState<number | null>(null);
+
+  const handleSelectOption = (questionIdx: number, optionIdx: number) => {
+    if (selectedAnswers[questionIdx] !== undefined) return;
+
+    const newAnswers = { ...selectedAnswers, [questionIdx]: optionIdx };
+    setSelectedAnswers(newAnswers);
+
+    if (Object.keys(newAnswers).length === questions.length) {
+      let s = 0;
+      questions.forEach((q, i) => { if (newAnswers[i] === q.answerIndex) s++; });
+      setScore(s);
+      if (s === questions.length) {
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+  };
+
+  return (
+    <div>
+      {score !== null && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.75rem 1rem',
+          background: score === questions.length
+            ? 'rgba(52,168,83,0.08)'
+            : 'rgba(251,188,4,0.08)',
+          border: `1px solid ${score === questions.length ? 'rgba(52,168,83,0.2)' : 'rgba(251,188,4,0.2)'}`,
+          borderRadius: 'var(--r-md)',
+          marginBottom: '1rem',
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          color: score === questions.length ? 'var(--success)' : 'var(--warning)',
+        }}>
+          <Award size={16} />
+          {score === questions.length
+            ? `Perfect score! ${score}/${questions.length} correct 🎉`
+            : `Score: ${score} / ${questions.length} — Review the explanations below`
+          }
+        </div>
+      )}
+
+      <div className="quiz-question-group">
+        {questions.map((q, qIdx) => {
+          const selected = selectedAnswers[qIdx];
+          const isAnswered = selected !== undefined;
+
+          return (
+            <div key={qIdx} className="quiz-card">
+              <div className="quiz-q-meta">
+                <span className="quiz-q-num">Q{qIdx + 1}</span>
+              </div>
+              <p className="quiz-question-title">{q.question}</p>
+
+              <div className="quiz-options">
+                {q.options.map((option, optIdx) => {
+                  let cls = '';
+                  if (isAnswered) {
+                    if (optIdx === q.answerIndex) cls = 'correct';
+                    else if (selected === optIdx) cls = 'wrong';
+                  }
+                  return (
+                    <button
+                      key={optIdx}
+                      className={`option-btn ${cls}`}
+                      onClick={() => handleSelectOption(qIdx, optIdx)}
+                      disabled={isAnswered}
+                    >
+                      <span className="option-letter">{String.fromCharCode(65 + optIdx)}</span>
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {isAnswered && (
+                <div className="explanation-feedback">
+                  <p style={{
+                    fontWeight: 600,
+                    marginBottom: '0.3rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    color: selected === q.answerIndex ? 'var(--success)' : 'var(--danger)',
+                    fontSize: '0.82rem',
+                  }}>
+                    {selected === q.answerIndex
+                      ? <><CheckCircle2 size={14} /> Correct</>
+                      : <><XCircle size={14} /> Incorrect — correct answer is {String.fromCharCode(65 + q.answerIndex)}</>
+                    }
+                  </p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--t2)' }}>{q.explanation}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
