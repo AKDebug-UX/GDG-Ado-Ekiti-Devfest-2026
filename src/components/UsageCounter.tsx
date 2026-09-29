@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { subscribeToUsageStats, UsageStats } from '../services/aiService';
 
-const DAILY_LIMIT = 499;
+const DAILY_LIMIT = 500;
 
 export const UsageCounter: React.FC = () => {
   const [stats, setStats] = useState<UsageStats | null>(null);
