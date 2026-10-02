@@ -2,31 +2,44 @@ import React from 'react';
 import { AuthBadge } from './AuthBadge';
 import { UsageCounter } from './UsageCounter';
 import { User } from '../firebase/config';
+import { Sparkles } from 'lucide-react';
 
 interface HeaderProps {
   user: User | null;
 }
 
+/**
+ * ============================================================================
+ * APPLICATION HEADER BAR (Header.tsx)
+ * ============================================================================
+ * 
+ * Styled directly from the official DevFest Ado-Ekiti '26 site (devfest.gdgadoekiti.com):
+ * - Real official SVG lockup logo: /logo-lockup.svg
+ * - Official GDG Green header card background (#34A853)
+ * - Neo-brutalist 2px ink borders with 4px hard drop shadows
+ * - Real-time conference usage counter and anonymous auth badge
+ * ============================================================================
+ */
 export const Header: React.FC<HeaderProps> = ({ user }) => {
   return (
-    <header className="header card">
-      <div className="logo-group">
-        {/* GDG 4-dot logo mark */}
-        <div className="logo-icon" aria-hidden="true">
-          <span className="logo-dot-1" />
-          <span className="logo-dot-2" />
-          <span className="logo-dot-3" />
-          <span className="logo-dot-4" />
-        </div>
-        <div className="logo-text">
-          <h1 className="header-title">AI Study Assistant</h1>
-          <div className="header-subtitle">
-            <span className="header-badge">DevFest Ado-Ekiti 2026</span>
-            {/* <span className="header-stack">Gemini · Firebase AI Logic</span> */}
-          </div>
+    <header className="header-nav">
+      {/* ── REAL DEVFEST ADO-EKITI LOGO LOCKUP ── */}
+      <div className="header-brand">
+        <a href="#top" className="logo-link" title="DevFest Ado-Ekiti '26">
+          <img
+            src="/logo-lockup.svg"
+            alt="DevFest Ado-Ekiti '26"
+            className="devfest-logo-img"
+          />
+        </a>
+
+        <div className="header-app-tag">
+          <Sparkles size={13} className="header-tag-icon" />
+          <span>AI Study Assistant</span>
         </div>
       </div>
 
+      {/* ── REAL-TIME STATS & AUTH BADGE ── */}
       <div className="header-controls">
         <UsageCounter />
         <AuthBadge user={user} />
@@ -34,3 +47,5 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
     </header>
   );
 };
+
+

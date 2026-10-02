@@ -6,6 +6,19 @@ interface TopicFormProps {
   isLoading: boolean;
 }
 
+/**
+ * ============================================================================
+ * TOPIC INPUT FORM COMPONENT (TopicForm.tsx)
+ * ============================================================================
+ * 
+ * Styled with DevFest Ado-Ekiti '26 aesthetics:
+ * - Real GDG small logo badge (/gdg-small-logo.png)
+ * - Brand typography and colors (GDG Yellow, Red, Blue, Green)
+ * - Neo-brutalist 2px ink borders with 8px hard drop shadows
+ * ============================================================================
+ */
+
+// Curated list of quick-start demo topics for fast presentation demos
 const PRESET_TOPICS = [
   'Cloud Firestore Data Modeling',
   'Firebase AI Logic Architecture',
@@ -19,18 +32,41 @@ export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (topic.trim() && !isLoading) onGenerate(topic.trim());
+    if (topic.trim() && !isLoading) {
+      onGenerate(topic.trim());
+    }
   };
 
   return (
     <div className="prompt-card card">
-      <span className="prompt-label">Study with AI</span>
-      <h2 className="prompt-title">What do you want to master?</h2>
+      {/* ── REAL GDG LOGO BANNER (Matches DevFest countdown header) ── */}
+      <div className="devfest-hero-badge">
+        <img
+          src="/gdg-small-logo.png"
+          alt="GDG Logo"
+          width="24"
+          height="14"
+          className="badge-gdg-logo"
+        />
+        <span className="badge-text">POWERED BY GEMINI & FIREBASE AI LOGIC</span>
+        <img
+          src="/gdg-small-logo.png"
+          alt="GDG Logo"
+          width="24"
+          height="14"
+          className="badge-gdg-logo"
+        />
+      </div>
+
+      <h2 className="prompt-title">
+        What do you want to learn at <span className="devfest-highlight">DevFest’<span className="text-gdg-red">2</span><span className="text-gdg-blue">6</span></span>?
+      </h2>
       <p className="prompt-subtitle">
-        Enter any topic or question — Gemini builds a structured explanation,
-        key points, real-world example, and a quiz. Powered by Firebase AI Logic.
+        Enter any tech concept, framework, or question — Gemini generates a structured explanation,
+        key takeaways, practical code, and a live knowledge check.
       </p>
 
+      {/* ── CUSTOM SEARCH FORM ── */}
       <form onSubmit={handleSubmit}>
         <div className="input-wrapper">
           <input
@@ -43,10 +79,11 @@ export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) =
             disabled={isLoading}
             autoComplete="off"
           />
+          {/* Submit button with loading spinner state */}
           <button
             id="generate-btn"
             type="submit"
-            className="generate-btn"
+            className="generate-btn press"
             disabled={isLoading || !topic.trim()}
           >
             {isLoading ? (
@@ -64,16 +101,20 @@ export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) =
         </div>
       </form>
 
+      {/* ── ONE-CLICK PRESET PILLS FOR LIVE DEMOS ── */}
       <div className="preset-pills">
         <span className="pill-label">
-          <Zap size={11} style={{ display: 'inline', marginRight: '3px', verticalAlign: 'middle' }} />
-          Quick topics
+          <Zap size={13} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
+          Quick topics:
         </span>
         {PRESET_TOPICS.map((item, idx) => (
           <button
             key={idx}
-            className="preset-pill"
-            onClick={() => { setTopic(item); onGenerate(item); }}
+            className={`preset-pill pill-color-${idx % 4} press`}
+            onClick={() => {
+              setTopic(item);
+              onGenerate(item);
+            }}
             disabled={isLoading}
             type="button"
           >
@@ -84,3 +125,5 @@ export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) =
     </div>
   );
 };
+
+

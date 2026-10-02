@@ -8,22 +8,52 @@ import { generateStudyMaterial, saveStudySession, getSavedSessions, incrementUsa
 import { StudySession } from './types/study';
 import { Sparkles } from 'lucide-react';
 
+/**
+ * ============================================================================
+ * MAIN APPLICATION COMPONENT (App.tsx)
+ * ============================================================================
+ * 
+ * Role in Architecture:
+ * - Central orchestrator for the AI Study Assistant.
+ * - Coordinates:
+ *   1. Anonymous Firebase Authentication (identifies the user seamlessly).
+ *   2. Gemini AI generation (calls aiService with the requested topic).
+ *   3. Firestore Persistence (saves and retrieves previous study sessions).
+ *   4. UI State (active session, loading indicators, error handling).
+ * ============================================================================
+ */
 export function App() {
+  // ─── STATE MANAGEMENT ──────────────────────────────────────────────────────
+  // Holds the current authenticated Firebase user (anonymous session)
   const [user, setUser] = useState<User | null>(null);
+
+  // Holds the currently active study session shown on the main screen
   const [currentSession, setCurrentSession] = useState<StudySession | null>(null);
+
+  // Holds the list of past sessions fetched from Cloud Firestore for this user
   const [savedSessions, setSavedSessions] = useState<StudySession[]>([]);
+
+  // Loading state while Gemini AI generates the study package
   const [isLoading, setIsLoading] = useState(false);
+
+  // Loading state while fetching past study history from Firestore
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  // Banner error message for network issues, auth failures, or API limits
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // 1. Initialize Anonymous Authentication
+  // ─── 1. AUTHENTICATION LIFECYCLE (Firebase Auth) ───────────────────────────
+  // When the app mounts, check if the user is signed in.
+  // If not, sign them in anonymously so they get a unique UID without typing a password.
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
+        // User already has an active session
         console.log("✅ Auth user:", currentUser.uid);
         setUser(currentUser);
         loadHistory(currentUser.uid);
       } else {
+        // First-time visit: Create an anonymous Firebase account
         try {
           const userCredential = await signInAnonymously(auth);
           console.log("✅ Anonymous sign-in success:", userCredential.user.uid);
@@ -35,9 +65,13 @@ export function App() {
         }
       }
     });
+
+    // Cleanup auth subscription on unmount
     return () => unsubscribe();
   }, []);
 
+  // ─── 2. LOAD USER HISTORY FROM FIRESTORE ──────────────────────────────────
+  // Fetches previous study sessions belonging to the current user's UID
   const loadHistory = async (userId: string) => {
     setIsHistoryLoading(true);
     const sessions = await getSavedSessions(userId);
@@ -45,31 +79,36 @@ export function App() {
     setIsHistoryLoading(false);
   };
 
-  // 2. Handle Generation Request
+  // ─── 3. CORE ACTION: GENERATE STUDY PACKAGE WITH GEMINI ────────────────────
+  // Triggered when user enters a topic or clicks a quick-topic pill
   const handleGenerate = async (topic: string) => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
+      // Step A: Call Gemini AI via Google Generative AI SDK with Structured Outputs
       const generatedData = await generateStudyMaterial(topic);
       
+      // Step B: Wrap response with metadata (timestamp, user ID)
       const newSession: StudySession = {
         ...generatedData,
         createdAt: Date.now(),
         userId: user?.uid
       };
 
+      // Step C: Update UI immediately so the user can begin studying
       setCurrentSession(newSession);
 
-      // Increment global usage counter (non-blocking)
+      // Step D: Atomically increment global usage counter in Firestore (non-blocking)
       incrementUsageCounter();
 
-      // Save session to Firestore if user authenticated
+      // Step E: Persist this session into user's Firestore collection for later retrieval
       if (user?.uid) {
         console.log("💾 Saving to Firestore for user:", user.uid);
         const docId = await saveStudySession(user.uid, generatedData);
         if (docId) {
           console.log("✅ Session saved with ID:", docId);
           newSession.id = docId;
+          // Refresh the sidebar history list
           loadHistory(user.uid);
         } else {
           console.warn("⚠️ Firestore save returned null — check Firestore rules or App Check.");
@@ -85,47 +124,77 @@ export function App() {
     }
   };
 
+  // ─── 4. RENDER UI ──────────────────────────────────────────────────────────
   return (
-    <div className="app-container">
-      <Header user={user} />
+    <div className="page-wrapper">
+      {/* Decorative hero shapes from devfest.gdgadoekiti.com */}
+      <img
+        src="/shape-pink-2.svg"
+        alt=""
+        aria-hidden="true"
+        className="decorative-shape shape-pink-2"
+      />
+      <img
+        src="/shape-pink-1.svg"
+        alt=""
+        aria-hidden="true"
+        className="decorative-shape shape-pink-1"
+      />
+      <img
+        src="/shape-green.svg"
+        alt=""
+        aria-hidden="true"
+        className="decorative-shape shape-green"
+      />
 
-      {errorMsg && (
-        <div className="emergency-banner">
-          {errorMsg}
-        </div>
-      )}
+      <div className="app-container">
+        {/* Top navigation with DevFest branding, live usage counter, and auth status */}
+        <Header user={user} />
 
-      <TopicForm onGenerate={handleGenerate} isLoading={isLoading} />
+        {/* Emergency / troubleshooting alert banner if any service encounters an error */}
+        {errorMsg && (
+          <div className="emergency-banner">
+            {errorMsg}
+          </div>
+        )}
 
-      <div className="layout-grid">
-        <main>
-          {currentSession ? (
-            <StudySessionView session={currentSession} />
-          ) : (
-            <div className="card empty-state">
-              <div className="empty-state-icon">
-                <Sparkles size={22} />
+        {/* Input box and quick-select topic buttons */}
+        <TopicForm onGenerate={handleGenerate} isLoading={isLoading} />
+
+        {/* Main 2-column layout: Left = Active Study Session, Right = History sidebar */}
+        <div className="layout-grid">
+          {/* Left Column: Active study content or welcoming empty state */}
+          <main>
+            {currentSession ? (
+              <StudySessionView session={currentSession} />
+            ) : (
+              <div className="card empty-state">
+                <div className="empty-state-icon">
+                  <Sparkles size={28} />
+                </div>
+                <h3 className="empty-state-title">
+                  Ready to learn something new?
+                </h3>
+                <p className="empty-state-text">
+                  Pick one of the quick topics above or enter your own question — Gemini and Firebase AI Logic will build a complete study package in seconds.
+                </p>
               </div>
-              <h3 style={{ color: 'var(--t1)', fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.4rem' }}>
-                Ready to learn something new?
-              </h3>
-              <p style={{ maxWidth: '380px', margin: '0 auto', fontSize: '0.875rem', color: 'var(--t2)', lineHeight: '1.6' }}>
-                Enter a topic above or pick a quick topic — Gemini will build a complete study package in seconds.
-              </p>
-            </div>
-          )}
-        </main>
+            )}
+          </main>
 
-        <aside>
-          <HistoryDrawer
-            sessions={savedSessions}
-            onSelectSession={(session) => setCurrentSession(session)}
-            isLoading={isHistoryLoading}
-          />
-        </aside>
+          {/* Right Column: List of saved sessions stored in Cloud Firestore */}
+          <aside>
+            <HistoryDrawer
+              sessions={savedSessions}
+              onSelectSession={(session) => setCurrentSession(session)}
+              isLoading={isHistoryLoading}
+            />
+          </aside>
+        </div>
       </div>
     </div>
   );
 }
 
 export default App;
+
