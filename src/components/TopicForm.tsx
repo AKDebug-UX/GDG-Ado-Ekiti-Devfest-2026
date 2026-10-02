@@ -18,13 +18,15 @@ interface TopicFormProps {
  * ============================================================================
  */
 
-// Curated list of quick-start demo topics for fast presentation demos
+// Curated quick topics directly based on the DevFest talk:
+// "Building AI-Powered Web Applications with Gemini API and Firebase"
 const PRESET_TOPICS = [
-  'Cloud Firestore Data Modeling',
-  'Firebase AI Logic Architecture',
-  'TypeScript Generics',
-  'OAuth 2.0 & Web Security',
-  'React Server Components',
+  'Gemini API Structured Outputs (JSON Schema)',
+  'Real-Time Firestore Sync with onSnapshot',
+  'Protecting AI Quotas with Firebase App Check',
+  'Frictionless Firebase Anonymous Authentication',
+  'Handling Gemini 503 Retries & Rate Limits',
+  'Firestore Atomic FieldValue.increment()',
 ];
 
 export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) => {
@@ -48,7 +50,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) =
           height="14"
           className="badge-gdg-logo"
         />
-        <span className="badge-text">POWERED BY GEMINI & FIREBASE AI LOGIC</span>
+        <span className="badge-text">BUILDING AI APPS WITH GEMINI & FIREBASE</span>
         <img
           src="/gdg-small-logo.png"
           alt="GDG Logo"
@@ -62,8 +64,7 @@ export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) =
         What do you want to learn at <span className="devfest-highlight">DevFest’<span className="text-gdg-red">2</span><span className="text-gdg-blue">6</span></span>?
       </h2>
       <p className="prompt-subtitle">
-        Enter any tech concept, framework, or question — Gemini generates a structured explanation,
-        key takeaways, practical code, and a live knowledge check.
+        Explore core topics from our talk on <strong>Building AI-Powered Web Applications with Gemini API and Firebase</strong>. Click a quick topic or ask any custom question.
       </p>
 
       {/* ── CUSTOM SEARCH FORM ── */}
@@ -73,12 +74,13 @@ export const TopicForm: React.FC<TopicFormProps> = ({ onGenerate, isLoading }) =
             id="topic-input"
             type="text"
             className="topic-input"
-            placeholder="e.g. How do Firebase Security Rules work?"
+            placeholder="e.g. How does Gemini API Structured Outputs work with Firebase?"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             disabled={isLoading}
             autoComplete="off"
           />
+
           {/* Submit button with loading spinner state */}
           <button
             id="generate-btn"
