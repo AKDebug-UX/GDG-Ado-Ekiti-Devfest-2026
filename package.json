@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node api.js && vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -13,9 +13,11 @@
     "@genkit-ai/googleai": "^1.28.0",
     "@google/generative-ai": "^0.22.0",
     "canvas-confetti": "^1.9.4",
+    "dotenv": "^8.2.0",
     "firebase": "^11.4.0",
     "genkit": "^1.42.0",
     "lucide-react": "^0.475.0",
+    "node-fetch": "^3.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
